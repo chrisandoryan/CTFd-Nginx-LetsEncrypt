@@ -48,7 +48,7 @@ docker-compose run --rm --entrypoint "\
 echo
 
 echo "### Starting CTFd ..."
-docker-compose up -f ./CTFd/docker-compose.yml --force-recreate -d
+docker-compose -f ./CTFd/docker-compose.yml up --force-recreate -d
 echo
 
 echo "### Starting nginx ..."
