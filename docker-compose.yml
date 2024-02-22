@@ -48,7 +48,7 @@ services:
         internal:
 
   nginx:
-    image: nginx
+    image: nginx:stable
     ports:
         - 80:80
         - 443:443
