@@ -9,8 +9,8 @@ fi
 # CUSTOMIZABLE CONFIGURATION  #
 # # # # # # # # # # # # # # # # 
 email="admin@petircysec.com" # You may want to add a valid email address, just to be cool.
-staging=0 # Set to 1 if you're testing your setup to avoid hitting request limits on LetsEncrypt.
-domains=(final.cscctf.com www.final.cscctf.com) # Your CTFd domain(s), separated with space.
+staging=1 # Set to 1 if you're testing your setup to avoid hitting request limits on LetsEncrypt.
+domains=(regen.petircysec.org) # Your CTFd domain(s), separated with space.
 rsa_key_size=4096
 data_path="./data/certbot" 
 
