@@ -48,9 +48,7 @@ docker-compose run --rm --entrypoint "\
 echo
 
 echo "### Starting CTFd ..."
-docker-compose up --force-recreate -d ctfd
-docker-compose up --force-recreate -d db
-docker-compose up --force-recreate -d cache
+cd ./CTFd && docker-compose up --force-recreate -d
 echo
 
 echo "### Starting nginx ..."
