@@ -42,7 +42,7 @@ services:
         - traefik.http.routers.ctfd.entrypoints=ctfd
         - traefik.http.services.ctfd.loadbalancer.server.port=8000
         - traefik.http.services.ctfd.loadbalancer.sticky=true
-        - traefik.http.services.ctfd.loadbalancer.sticky.cookie.name=ctfdlb
+        - traefik.http.services.ctfd.loadbalancer.sticky.cookie.name=ctfd_lb
         - traefik.http.routers.ctfd.tls.certresolver=ctfdcertresolvers
     networks:
       - ctfd-traefik-network
