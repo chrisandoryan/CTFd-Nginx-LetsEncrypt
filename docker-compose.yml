@@ -3,22 +3,29 @@ services:
   traefik:
     image: traefik
     command:
-      - "--api.insecure=true"
-      - "--providers.docker=true"
-      - "--providers.docker.exposedbydefault=false"
-      - "--entryPoints.ctfd.address=:443"
-      - "--certificatesresolvers.ctfdcertresolvers.acme.tlschallenge=false"
-      - "--certificatesresolvers.ctfdcertresolvers.acme.email=postmaster@idcyberskills.com"
-      - "--certificatesresolvers.ctfdcertresolvers.acme.storage=/letsencrypt/acme.json"
+      - --log.level=INFO
+      - --api.insecure=true
+      - --api.dashboard=true
+      - --entrypoints.ctfd.address=:80
+      - --providers.swarm=true
+      - --providers.swarm.network=ctfd-traefik-network
+      - --providers.swarm.exposedByDefault=false
+      - --certificatesresolvers.ctfdcertresolvers.acme.tlschallenge=true
+      - --certificatesresolvers.ctfdcertresolvers.acme.email=postmaster@idcyberskills.com
+      - --certificatesresolvers.ctfdcertresolvers.acme.storage=/letsencrypt/acme.json
     ports:
-      - 443:443
+      - 80:80
       - 8080:8080
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.role==manager
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./data/traefik/letsencrypt:/letsencrypt
     networks:
-      - internal
-      - default
+      - ctfd-traefik-network
 
   ctfd:
     image: ctfd/ctfd
@@ -27,17 +34,21 @@ services:
     environment:
       - SQLALCHEMY_MAX_OVERFLOW=100
       - REVERSE_PROXY=true
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.ctfd.rule=Host(`ctfd.idcyberskills.com`)"
-      - "traefik.http.routers.ctfd.entrypoints=ctfd"
-      - "traefik.http.routers.ctfd.tls.certresolver=ctfdcertresolvers"
+    deploy:
+      replicas: 2
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.ctfd.rule=Host(`ctfd.idcyberskills.com`)
+        - traefik.http.routers.ctfd.entrypoints=ctfd
+        - traefik.http.services.ctfd.loadbalancer.server.port=8000
+        - traefik.http.services.ctfd.loadbalancer.sticky=true
+        - traefik.http.services.ctfd.loadbalancer.sticky.cookie.name=ctfdlb
+        - traefik.http.routers.ctfd.tls.certresolver=ctfdcertresolvers
     networks:
-        internal:
+      - ctfd-traefik-network
 
   db:
     image: mariadb:10.4.12
-    restart: always
     environment:
       - MYSQL_ROOT_PASSWORD=ctfd
       - MYSQL_USER=ctfd
@@ -45,20 +56,17 @@ services:
       - MYSQL_DATABASE=ctfd
     volumes:
       - ./data/mysql:/var/lib/mysql
-    networks:
-        internal:
-    # This command is required to set important mariadb defaults
     command: [mysqld, --character-set-server=utf8mb4, --collation-server=utf8mb4_unicode_ci, --wait_timeout=28800, --log-warnings=0]
+    networks:
+      - ctfd-traefik-network
 
   cache:
     image: redis:4
-    restart: always
     volumes:
-    - ./data/redis:/data
+      - ./data/redis:/data
     networks:
-        internal:
-
+      - ctfd-traefik-network
+    
 networks:
-    default:
-    internal:
-        internal: true
+  ctfd-traefik-network:
+    external: true
