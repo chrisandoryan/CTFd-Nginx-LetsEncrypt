@@ -25,6 +25,7 @@ check_network() {
 
     if [ "$NETWORK_EXISTS" == "$NETWORK_NAME" ]; then
         echo "Network '$NETWORK_NAME' already exists."
+        docker network rm ctfd-traefik-network
     else
         echo "Network '$NETWORK_NAME' does not exist. Creating network..."
         docker network create --driver overlay $NETWORK_NAME

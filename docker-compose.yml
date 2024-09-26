@@ -3,7 +3,7 @@ services:
   traefik:
     image: traefik
     command:
-      - --log.level=INFO
+      - --log.level=DEBUG
       - --api.insecure=true
       - --api.dashboard=true
       - --entrypoints.ctfd.address=:80
@@ -14,29 +14,23 @@ services:
       - --certificatesresolvers.ctfdcertresolvers.acme.email=postmaster@idcyberskills.com
       - --certificatesresolvers.ctfdcertresolvers.acme.storage=/letsencrypt/acme.json
     ports:
-      - target: 80
-        published: 80
-        protocol: tcp
-        mode: host
-      - target: 8080
-        published: 8080
-        protocol: tcp
-        mode: host
+      - 80:80
+      - 8080:8080
     deploy:
       mode: global
       placement:
         constraints:
           - node.role==manager
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/run/docker.sock:/var/run/docker.sock
       - ./data/traefik/letsencrypt:/letsencrypt
     networks:
       - ctfd-traefik-network
 
   ctfd:
     image: ctfd/ctfd
-    expose:
-      - 8000
+    ports:
+      - 8000:8000
     environment:
       - SQLALCHEMY_MAX_OVERFLOW=100
       - REVERSE_PROXY=true
