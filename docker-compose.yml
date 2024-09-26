@@ -6,7 +6,7 @@ services:
       - --log.level=DEBUG
       - --api.insecure=true
       - --api.dashboard=true
-      - --entrypoints.ctfd.address=:80
+      - --entrypoints.ctfd.address=:443
       - --providers.swarm=true
       - --providers.swarm.network=ctfd-traefik-network
       - --providers.swarm.exposedByDefault=false
@@ -14,7 +14,7 @@ services:
       - --certificatesresolvers.ctfdcertresolvers.acme.email=postmaster@idcyberskills.com
       - --certificatesresolvers.ctfdcertresolvers.acme.storage=/letsencrypt/acme.json
     ports:
-      - 80:80
+      - 443:443
       - 8080:8080
     deploy:
       mode: global
