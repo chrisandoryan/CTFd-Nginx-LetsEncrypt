@@ -8,8 +8,8 @@ fi
 # # # # # # # # # # # # # # # # 
 # CUSTOMIZABLE CONFIGURATION  #
 # # # # # # # # # # # # # # # # 
-email="admin@idcyberskills.com" 
-domains=(ctfd.idcyberskills.com www.ctfd.idcyberskills.com)
+email="admin@idcyberskills.com" # Email address to be put in the TLS certificate.
+domains=(ctfd.idcyberskills.com) # Your CTFd domain(s), separated with space.
 
 prepare_compose_file() {
     local compose_file="docker-compose.yml"
