@@ -1,9 +1,40 @@
 version: '3'
 services:
+  traefik:
+    image: traefik
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entryPoints.ctfd.address=:443"
+      - "--certificatesresolvers.ctfdcertresolvers.acme.tlschallenge=false"
+      - "--certificatesresolvers.ctfdcertresolvers.acme.email=postmaster@idcyberskills.com"
+      - "--certificatesresolvers.ctfdcertresolvers.acme.storage=/letsencrypt/acme.json"
+    ports:
+      - 443:443
+      - 8080:8080
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./data/traefik/letsencrypt:/letsencrypt
+    networks:
+      - internal
+      - default
+
   ctfd:
     image: ctfd/ctfd
     ports:
-        - 8000:8000
+      - 8000:8000
+    environment:
+      - SQLALCHEMY_MAX_OVERFLOW=100
+      - REVERSE_PROXY=true
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.ctfd.rule=Host(`ctfd.idcyberskills.com`)"
+      - "traefik.http.routers.ctfd.entrypoints=ctfd"
+      - "traefik.http.routers.ctfd.tls.certresolver=ctfdcertresolvers"
+    networks:
+        internal:
+
   db:
     image: mariadb:10.4.12
     restart: always
@@ -13,7 +44,7 @@ services:
       - MYSQL_PASSWORD=ctfd
       - MYSQL_DATABASE=ctfd
     volumes:
-      - .data/mysql:/var/lib/mysql
+      - ./data/mysql:/var/lib/mysql
     networks:
         internal:
     # This command is required to set important mariadb defaults
@@ -23,27 +54,9 @@ services:
     image: redis:4
     restart: always
     volumes:
-    - .data/redis:/data
+    - ./data/redis:/data
     networks:
         internal:
-
-  nginx:
-    image: nginx
-    ports:
-        - 80:80
-        - 443:443
-    volumes:
-        - ./data/nginx:/etc/nginx/conf.d
-        - ./data/certbot/conf:/etc/letsencrypt
-        - ./data/certbot/www:/var/www/certbot
-    command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
-    
-  certbot:
-    image: certbot/certbot
-    volumes:
-        - ./data/certbot/conf:/etc/letsencrypt
-        - ./data/certbot/www:/var/www/certbot
-    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
 
 networks:
     default:
