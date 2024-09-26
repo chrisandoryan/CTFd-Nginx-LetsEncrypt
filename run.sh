@@ -1,6 +1,35 @@
 #!/bin/bash
 
-# Function to check if Docker Swarm is initialized
+if ! [ -x "$(command -v docker compose)" ]; then
+    echo 'Error: docker compose is not installed.' >&2
+    exit 1
+fi
+
+# # # # # # # # # # # # # # # # 
+# CUSTOMIZABLE CONFIGURATION  #
+# # # # # # # # # # # # # # # # 
+email="admin@idcyberskills.com" 
+domains=(ctfd.idcyberskills.com www.ctfd.idcyberskills.com)
+
+prepare_compose_file() {
+    local compose_file="docker-compose.yml"
+
+    cp "${compose_file}.template" "$compose_file"
+    
+    for domain in "${domains[@]}"; do
+        if [[ -z "$domain_rule" ]]; then
+            domain_rule="Host(\`${domain}\`)"
+        else
+            domain_rule="${domain_rule} || Host(\`${domain}\`)"
+        fi
+    done
+
+    sed -i "s/postmaster@idcyberskills\.com/${email}/g" "$compose_file"
+    sed -i "s/Host(\`ctfd\.idcyberskills\.com\`)/${domain_rule}/g" "$compose_file"
+
+    echo "Created docker-compose.yml with new domain(s): ${domains[*]}"
+}
+
 check_swarm() {
     local SWARM_STATUS=$(docker info --format '{{.Swarm.LocalNodeState}}')
 
@@ -18,7 +47,6 @@ check_swarm() {
     fi
 }
 
-# Function to check if a Docker network exists
 check_network() {
     local NETWORK_NAME="ctfd-traefik-network"
     local NETWORK_EXISTS=$(docker network ls --filter name=${NETWORK_NAME} --format="{{ .Name }}")
@@ -37,6 +65,7 @@ check_network() {
     fi
 }
 
+prepare_compose_file
 check_swarm
 check_network
-docker stack deploy -c docker-compose.yml ctfdtraefik
+docker stack deploy -c docker-compose.yml scaled_ctfd_traefik
