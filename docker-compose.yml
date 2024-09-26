@@ -14,8 +14,14 @@ services:
       - --certificatesresolvers.ctfdcertresolvers.acme.email=postmaster@idcyberskills.com
       - --certificatesresolvers.ctfdcertresolvers.acme.storage=/letsencrypt/acme.json
     ports:
-      - 80:80
-      - 8080:8080
+      - target: 80
+        published: 80
+        protocol: tcp
+        mode: host
+      - target: 8080
+        published: 8080
+        protocol: tcp
+        mode: host
     deploy:
       mode: global
       placement:
@@ -29,8 +35,8 @@ services:
 
   ctfd:
     image: ctfd/ctfd
-    ports:
-      - 8000:8000
+    expose:
+      - 8000
     environment:
       - SQLALCHEMY_MAX_OVERFLOW=100
       - REVERSE_PROXY=true

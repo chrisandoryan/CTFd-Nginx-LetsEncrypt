@@ -6,7 +6,7 @@ check_swarm() {
 
     if [ "$SWARM_STATUS" != "active" ]; then
         echo "Docker Swarm is not initialized. Initializing Swarm..."
-        docker swarm init
+        docker swarm init --advertise-addr 127.0.0.1
         if [ $? -eq 0 ]; then
             echo "Swarm initialized successfully."
         else
